@@ -8,7 +8,6 @@ __pycache__/
 env/
 .venv
 venv
-poetry.lock
 
 # Unit test / coverage reports
 .coverage
@@ -32,7 +31,13 @@ coverage.xml
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
-.neptune/
 
-# Personal files
-credentials.json
+# Project folders
+data/
+
+# MLflow artifacts
+mlartifacts/
+mlruns/
+
+# Environment configs
+**/.env

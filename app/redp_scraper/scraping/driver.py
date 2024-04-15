@@ -1,17 +1,25 @@
 import logging
 import time
+import os
 
 import undetected_chromedriver as uc
 from retry import retry
 
 LOGGER = logging.getLogger(__name__)
+DOCKER_RUN = os.environ.get('DOCKER_RUN', False)
+INITIAL_SLEEP = 5
+DRIVER_EXECUTABLE_PATH = '/usr/lib/chromium/chromedriver' if DOCKER_RUN else None
 
 
 class SmartDriver:
     """Driver that resets itself after a certain amount of actions or time passed."""
 
     def __init__(
-        self, refresh_rate: int = 10, refresh_timer: int = 60, wait_to_load: int = 3, headless: bool = True
+        self,
+        refresh_rate: int = 10,
+        refresh_timer: int = 60,
+        wait_to_load: int = 3,
+        headless: bool = False,
     ):
         """Initialize the driver with a refresh rate and timer."""
         self.actions = 0
@@ -20,7 +28,7 @@ class SmartDriver:
         self.refresh_timer = refresh_timer
         self.wait_to_load = wait_to_load
         self.headless = headless
-        self.driver = self.initialize_chromedriver()
+        self.initialize_chromedriver()
 
     def get_options(self):
         """Get the options for the chromedriver."""
@@ -30,13 +38,18 @@ class SmartDriver:
 
     def initialize_chromedriver(self):
         """Initialize the chromedriver."""
-        self.last_refresh = time.time()
-        return uc.Chrome(options=self.get_options(),)
+        self.driver = uc.Chrome(
+            options=self.get_options(),
+            headless=self.headless,
+            use_subprocess=False,
+            driver_executable_path=DRIVER_EXECUTABLE_PATH,
+        )
 
     def refresh(self):
         """Refresh the chromedriver."""
         self.driver.quit()
-        self.driver = self.initialize_chromedriver()
+        self.initialize_chromedriver()
+        self.last_refresh = time.time()
 
     def increment(self):
         """Increments the actions and refreshes if needed."""
